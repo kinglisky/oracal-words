@@ -321,6 +321,7 @@
             </div>
             <button id="exportBtn" class="export-btn">导出JSON</button>
             <button id="importBtn" class="export-btn" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">导入JSON</button>
+            <button id="clearBtn" class="export-btn" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">清除选择</button>
             <input type="file" id="importFile" accept=".json" style="display: none;">
         </div>
 
@@ -329,6 +330,7 @@
             <span id="singleCount">单个Unicode: 0</span>
             <span id="multipleCount">多个Unicode: 0</span>
             <span id="selectedCount">已选择: 0</span>
+            <span id="storageStatus" style="color: #27ae60; font-weight: bold;">✓ 自动保存已启用</span>
         </div>
 
         <div class="content">
@@ -347,6 +349,9 @@
         let characterData = {};
         let filteredData = {};
         let selectedData = {};
+
+        // localStorage 相关常量
+        const STORAGE_KEY = 'oracle_selected_data';
 
         // 加载数据
         async function loadData() {
@@ -382,10 +387,60 @@
             }
         }
 
+        // 从localStorage加载选择数据
+        function loadSelectedDataFromStorage() {
+            if (!isLocalStorageAvailable()) {
+                console.warn('localStorage不可用，无法加载数据');
+                return {};
+            }
+            
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    return parsed;
+                }
+            } catch (error) {
+                console.warn('从localStorage加载数据失败:', error);
+            }
+            return {};
+        }
+
+        // 检查localStorage是否可用
+        function isLocalStorageAvailable() {
+            try {
+                const test = '__localStorage_test__';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // 保存选择数据到localStorage
+        function saveSelectedDataToStorage() {
+            if (!isLocalStorageAvailable()) {
+                console.warn('localStorage不可用，无法保存数据');
+                return;
+            }
+            
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedData));
+            } catch (error) {
+                console.error('保存到localStorage失败:', error);
+            }
+        }
+
         // 初始化选择数据
         function initializeSelectedData() {
+            const storedData = loadSelectedDataFromStorage();
+            
             Object.entries(characterData).forEach(([hanzi, unicodeList]) => {
-                if (unicodeList.length === 1) {
+                if (storedData[hanzi] && unicodeList.includes(storedData[hanzi])) {
+                    // 使用存储的选择
+                    selectedData[hanzi] = storedData[hanzi];
+                } else if (unicodeList.length === 1) {
                     // 单个Unicode默认选中
                     selectedData[hanzi] = unicodeList[0];
                 } else {
@@ -393,6 +448,9 @@
                     selectedData[hanzi] = null;
                 }
             });
+            
+            // 保存初始状态到localStorage
+            saveSelectedDataToStorage();
         }
 
         // 显示字符
@@ -443,6 +501,7 @@
                     radio.checked = selectedData[hanzi] === unicode;
                     radio.addEventListener('change', () => {
                         selectedData[hanzi] = unicode;
+                        saveSelectedDataToStorage(); // 实时保存到localStorage
                         updateStats();
                         // 更新选中状态
                         oracleItem.classList.add('selected');
@@ -528,6 +587,16 @@
             document.getElementById('singleCount').textContent = `单个Unicode: ${singleCount}`;
             document.getElementById('multipleCount').textContent = `多个Unicode: ${multipleCount}`;
             document.getElementById('selectedCount').textContent = `已选择: ${selectedCount}`;
+            
+            // 更新localStorage状态显示
+            const storageStatus = document.getElementById('storageStatus');
+            if (isLocalStorageAvailable()) {
+                storageStatus.textContent = '✓ 自动保存已启用';
+                storageStatus.style.color = '#27ae60';
+            } else {
+                storageStatus.textContent = '⚠ 自动保存不可用';
+                storageStatus.style.color = '#e74c3c';
+            }
         }
 
         // 导出JSON
@@ -556,6 +625,30 @@
             fileInput.click();
         }
 
+        // 清除所有选择
+        function clearAllSelections() {
+            if (confirm('确定要清除所有选择吗？这将重置所有字符的选中状态。')) {
+                // 重置选择数据
+                Object.keys(characterData).forEach(hanzi => {
+                    const unicodeList = characterData[hanzi];
+                    if (unicodeList.length === 1) {
+                        selectedData[hanzi] = unicodeList[0];
+                    } else {
+                        selectedData[hanzi] = null;
+                    }
+                });
+                
+                // 保存到localStorage
+                saveSelectedDataToStorage();
+                
+                // 重新显示字符
+                displayCharacters();
+                updateStats();
+                
+                alert('已清除所有选择');
+            }
+        }
+
         // 处理文件导入
         function handleFileImport(event) {
             const file = event.target.files[0];
@@ -580,6 +673,9 @@
                         }
                     });
 
+                    // 保存到localStorage
+                    saveSelectedDataToStorage();
+
                     // 重新显示字符以更新选中状态
                     displayCharacters();
                     updateStats();
@@ -602,6 +698,7 @@
         document.getElementById('sortType').addEventListener('change', filterCharacters);
         document.getElementById('exportBtn').addEventListener('click', exportJSON);
         document.getElementById('importBtn').addEventListener('click', importJSON);
+        document.getElementById('clearBtn').addEventListener('click', clearAllSelections);
         document.getElementById('importFile').addEventListener('change', handleFileImport);
 
         // 页面加载完成后加载数据
