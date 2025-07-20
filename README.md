@@ -1,6 +1,3 @@
-# oracal-words
+# 甲骨文字体映射展示
 
-汉字与甲骨文映射工具，鉴于“殷契文渊”字形工具着实难用，自己撸了一个用来查看汉字与甲骨文字符映射。
-
-
-工具地址：https://kinglisky.github.io/oracal-words
+鉴于殷契文渊的字形工具不是很好用，自己撸了一个，地址为：https://kinglisky.github.io/oracal-words
