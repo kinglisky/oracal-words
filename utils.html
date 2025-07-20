@@ -351,7 +351,7 @@
         // 加载数据
         async function loadData() {
             try {
-                const response = await fetch('./one-word.json');
+                const response = await fetch('./resources/single-word.json');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -377,7 +377,7 @@
                 document.getElementById('loading').innerHTML = `
                     <p>加载数据失败</p>
                     <p style="font-size: 0.9em; color: #666;">错误信息: ${error.message}</p>
-                    <p style="font-size: 0.9em; color: #666;">请确保 one-word.json 文件在同一目录下</p>
+                    <p style="font-size: 0.9em; color: #666;">请确保 resources/single-word.json 文件在同一目录下</p>
                 `;
             }
         }
