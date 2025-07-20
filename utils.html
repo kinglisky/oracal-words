@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>甲骨文字体筛选工具</title>
+    <style>
+        @font-face {
+            font-family: 'Oracle';
+            src: url('./oracel.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .filter-select {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: #667eea;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            padding: 15px 30px;
+            background: #e8f4fd;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .content {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            height: fit-content;
+            align-content: start;
+        }
+
+        .character-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .character-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .character-card.multiple {
+            border-color: #f39c12;
+            background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+        }
+
+        .character-card.single {
+            border-color: #27ae60;
+            background: linear-gradient(135deg, #e8f8f5 0%, #ffffff 100%);
+        }
+
+        .character-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .character-hanzi {
+            font-size: 2.5em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .character-hanzi a {
+            color: #000000;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .character-hanzi a:hover {
+            color: #667eea;
+        }
+
+        .character-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .character-type.single {
+            background: #27ae60;
+        }
+
+        .character-type.multiple {
+            background: #f39c12;
+        }
+
+        .oracle-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .oracle-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .oracle-item:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .oracle-item.selected {
+            border-color: #27ae60;
+            background: #e8f8f5;
+        }
+
+        .oracle-radio {
+            width: 20px;
+            height: 20px;
+            accent-color: #27ae60;
+        }
+
+        .oracle-char {
+            font-family: 'Oracle', sans-serif;
+            font-size: 2.5em;
+            color: #2c3e50;
+            flex: 1;
+            text-align: center;
+        }
+
+        .oracle-unicode {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #666;
+            min-width: 80px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .oracle-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>甲骨文字体筛选工具</h1>
+            <p>手动选择每个汉字对应的最佳甲骨文Unicode码</p>
+        </div>
+
+        <div class="controls">
+            <div class="filter-group">
+                <label class="filter-label">筛选类型:</label>
+                <select id="filterType" class="filter-select">
+                    <option value="all">全部汉字</option>
+                    <option value="single">单个Unicode</option>
+                    <option value="multiple">多个Unicode</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">排序方式:</label>
+                <select id="sortType" class="filter-select">
+                    <option value="default">默认顺序</option>
+                    <option value="hanzi">按汉字排序</option>
+                    <option value="count">按Unicode数量排序</option>
+                </select>
+            </div>
+            <button id="exportBtn" class="export-btn">导出JSON</button>
+            <button id="importBtn" class="export-btn" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">导入JSON</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+        </div>
+
+        <div class="stats">
+            <span id="totalCount">总字符数: 0</span>
+            <span id="singleCount">单个Unicode: 0</span>
+            <span id="multipleCount">多个Unicode: 0</span>
+            <span id="selectedCount">已选择: 0</span>
+        </div>
+
+        <div class="content">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>正在加载数据...</p>
+            </div>
+            <div id="characterGrid" class="character-grid" style="display: none;"></div>
+            <div id="noResults" class="no-results" style="display: none;">
+                <p>没有找到匹配的字符</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let characterData = {};
+        let filteredData = {};
+        let selectedData = {};
+
+        // 加载数据
+        async function loadData() {
+            try {
+                const response = await fetch('./one-word.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                characterData = await response.json();
+                
+                // 验证数据结构
+                if (typeof characterData !== 'object' || characterData === null) {
+                    throw new Error('数据格式错误：不是有效的JSON对象');
+                }
+                
+                console.log(`成功加载数据，共 ${Object.keys(characterData).length} 个字符`);
+                
+                // 初始化选择数据
+                initializeSelectedData();
+                
+                filteredData = { ...characterData };
+                displayCharacters();
+                updateStats();
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('characterGrid').style.display = 'grid';
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('loading').innerHTML = `
+                    <p>加载数据失败</p>
+                    <p style="font-size: 0.9em; color: #666;">错误信息: ${error.message}</p>
+                    <p style="font-size: 0.9em; color: #666;">请确保 one-word.json 文件在同一目录下</p>
+                `;
+            }
+        }
+
+        // 初始化选择数据
+        function initializeSelectedData() {
+            Object.entries(characterData).forEach(([hanzi, unicodeList]) => {
+                if (unicodeList.length === 1) {
+                    // 单个Unicode默认选中
+                    selectedData[hanzi] = unicodeList[0];
+                } else {
+                    // 多个Unicode默认不选中
+                    selectedData[hanzi] = null;
+                }
+            });
+        }
+
+        // 显示字符
+        function displayCharacters() {
+            const grid = document.getElementById('characterGrid');
+            grid.innerHTML = '';
+
+            Object.entries(filteredData).forEach(([hanzi, unicodeList]) => {
+                const card = document.createElement('div');
+                card.className = `character-card ${unicodeList.length === 1 ? 'single' : 'multiple'}`;
+
+                const header = document.createElement('div');
+                header.className = 'character-header';
+
+                const hanziElement = document.createElement('div');
+                hanziElement.className = 'character-hanzi';
+                
+                // 创建链接元素
+                const hanziLink = document.createElement('a');
+                hanziLink.href = `https://www.zdic.net/hans/${encodeURIComponent(hanzi)}`;
+                hanziLink.target = '_blank';
+                hanziLink.textContent = hanzi;
+                
+                hanziElement.appendChild(hanziLink);
+
+                const typeElement = document.createElement('div');
+                typeElement.className = `character-type ${unicodeList.length === 1 ? 'single' : 'multiple'}`;
+                typeElement.textContent = unicodeList.length === 1 ? '单个' : '多个';
+
+                header.appendChild(hanziElement);
+                header.appendChild(typeElement);
+
+                const oracleList = document.createElement('div');
+                oracleList.className = 'oracle-list';
+
+                unicodeList.forEach((unicode, index) => {
+                    const oracleItem = document.createElement('div');
+                    oracleItem.className = 'oracle-item';
+                    if (selectedData[hanzi] === unicode) {
+                        oracleItem.classList.add('selected');
+                    }
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `oracle-${hanzi}`;
+                    radio.value = unicode;
+                    radio.className = 'oracle-radio';
+                    radio.checked = selectedData[hanzi] === unicode;
+                    radio.addEventListener('change', () => {
+                        selectedData[hanzi] = unicode;
+                        updateStats();
+                        // 更新选中状态
+                        oracleItem.classList.add('selected');
+                        oracleList.querySelectorAll('.oracle-item').forEach(item => {
+                            if (item !== oracleItem) {
+                                item.classList.remove('selected');
+                            }
+                        });
+                    });
+
+                    const oracleChar = document.createElement('div');
+                    oracleChar.className = 'oracle-char';
+                    
+                    try {
+                        const codePoint = parseInt(unicode.substring(1), 16);
+                        if (isNaN(codePoint)) {
+                            oracleChar.textContent = '?';
+                        } else {
+                            oracleChar.textContent = String.fromCodePoint(codePoint);
+                        }
+                    } catch (error) {
+                        oracleChar.textContent = '?';
+                    }
+
+                    const unicodeCode = document.createElement('div');
+                    unicodeCode.className = 'oracle-unicode';
+                    unicodeCode.textContent = unicode;
+
+                    oracleItem.appendChild(radio);
+                    oracleItem.appendChild(oracleChar);
+                    oracleItem.appendChild(unicodeCode);
+                    oracleList.appendChild(oracleItem);
+                });
+
+                card.appendChild(header);
+                card.appendChild(oracleList);
+                grid.appendChild(card);
+            });
+        }
+
+        // 筛选功能
+        function filterCharacters() {
+            const filterType = document.getElementById('filterType').value;
+            const sortType = document.getElementById('sortType').value;
+            
+            filteredData = {};
+            
+            Object.entries(characterData).forEach(([hanzi, unicodeList]) => {
+                let shouldInclude = true;
+                
+                if (filterType === 'single' && unicodeList.length > 1) {
+                    shouldInclude = false;
+                } else if (filterType === 'multiple' && unicodeList.length === 1) {
+                    shouldInclude = false;
+                }
+                
+                if (shouldInclude) {
+                    filteredData[hanzi] = unicodeList;
+                }
+            });
+
+            // 排序
+            if (sortType === 'hanzi') {
+                const sortedEntries = Object.entries(filteredData).sort(([a], [b]) => a.localeCompare(b));
+                filteredData = Object.fromEntries(sortedEntries);
+            } else if (sortType === 'count') {
+                const sortedEntries = Object.entries(filteredData).sort(([, a], [, b]) => a.length - b.length);
+                filteredData = Object.fromEntries(sortedEntries);
+            }
+
+            displayCharacters();
+            updateStats();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const totalCount = Object.keys(characterData).length;
+            const singleCount = Object.values(characterData).filter(list => list.length === 1).length;
+            const multipleCount = Object.values(characterData).filter(list => list.length > 1).length;
+            const selectedCount = Object.values(selectedData).filter(value => value !== null).length;
+            
+            document.getElementById('totalCount').textContent = `总字符数: ${totalCount}`;
+            document.getElementById('singleCount').textContent = `单个Unicode: ${singleCount}`;
+            document.getElementById('multipleCount').textContent = `多个Unicode: ${multipleCount}`;
+            document.getElementById('selectedCount').textContent = `已选择: ${selectedCount}`;
+        }
+
+        // 导出JSON
+        function exportJSON() {
+            const exportData = {};
+            Object.entries(selectedData).forEach(([hanzi, unicode]) => {
+                if (unicode !== null) {
+                    exportData[hanzi] = unicode;
+                }
+            });
+            
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'oracle-selected.json';
+            link.click();
+            
+            URL.revokeObjectURL(link.href);
+        }
+
+        // 导入JSON
+        function importJSON() {
+            const fileInput = document.getElementById('importFile');
+            fileInput.click();
+        }
+
+        // 处理文件导入
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 验证数据格式
+                    if (typeof importedData !== 'object' || importedData === null) {
+                        throw new Error('无效的JSON格式');
+                    }
+
+                    // 更新选中状态
+                    let importedCount = 0;
+                    Object.entries(importedData).forEach(([hanzi, unicode]) => {
+                        if (characterData[hanzi] && characterData[hanzi].includes(unicode)) {
+                            selectedData[hanzi] = unicode;
+                            importedCount++;
+                        }
+                    });
+
+                    // 重新显示字符以更新选中状态
+                    displayCharacters();
+                    updateStats();
+
+                    // 显示导入结果
+                    alert(`成功导入 ${importedCount} 个字符的选中状态`);
+                    
+                    // 清空文件输入
+                    event.target.value = '';
+                } catch (error) {
+                    alert(`导入失败: ${error.message}`);
+                    console.error('导入错误:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 事件监听器
+        document.getElementById('filterType').addEventListener('change', filterCharacters);
+        document.getElementById('sortType').addEventListener('change', filterCharacters);
+        document.getElementById('exportBtn').addEventListener('click', exportJSON);
+        document.getElementById('importBtn').addEventListener('click', importJSON);
+        document.getElementById('importFile').addEventListener('change', handleFileImport);
+
+        // 页面加载完成后加载数据
+        window.addEventListener('load', loadData);
+    </script>
+</body>
+</html> 

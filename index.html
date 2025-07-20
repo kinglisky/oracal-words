@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>甲骨文字体映射展示</title>
+    <style>
+        @font-face {
+            font-family: 'Oracle';
+            src: url('./resources/oracel.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimSun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Tab样式 */
+        .tab-container {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            height: fit-content;
+            align-content: start;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .character-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: fit-content;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .character-hanzi {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .character-hanzi a {
+            transition: color 0.2s ease, transform 0.2s ease;
+            cursor: pointer;
+            display: inline-block;
+            color: #000000;
+        }
+
+        .character-hanzi a:hover {
+            color: #667eea !important;
+            transform: scale(1.05);
+        }
+
+        .oracle-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .oracle-item {
+            font-family: 'Oracle', sans-serif;
+            font-size: 2em;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+        }
+
+        .oracle-item:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+
+        .unicode-code {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            margin-top: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .modal-oracle {
+            font-family: 'Oracle', sans-serif;
+            font-size: 24em;
+            margin: 30px 0;
+            color: #2c3e50;
+            line-height: 1;
+        }
+
+        .modal-unicode {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            color: #666;
+            margin: 15px 0;
+            word-break: break-all;
+            overflow-wrap: break-word;
+        }
+
+        .modal-hanzi {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin: 15px 0;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 2.5em;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-close-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .character-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .oracle-item {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>甲骨文字体映射展示</h1>
+            <p>汉字与对应甲骨文字体的Unicode映射关系</p>
+        </div>
+
+        <!-- Tab切换 -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('single')">单字</button>
+                <button class="tab-btn" onclick="switchTab('multi')">名词</button>
+            </div>
+        </div>
+
+        <!-- 单字Tab内容 -->
+        <div id="singleTab" class="tab-content active">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="singleSearchInput" class="search-input" placeholder="输入一个或多个汉字进行搜索，如：明天、你好..." />
+                    <button onclick="searchSingleCharacters()" class="search-btn">搜索</button>
+                </div>
+                <div class="stats">
+                    <span id="singleTotalCount">总字符数: 0</span>
+                    <span id="singleDisplayCount">显示字符数: 0</span>
+                </div>
+            </div>
+
+            <div class="content">
+                <div id="singleLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在加载单字数据...</p>
+                </div>
+                <div id="singleCharacterGrid" class="character-grid" style="display: none; flex: 0 0 auto;"></div>
+                <div id="singleNoResults" class="no-results" style="display: none; flex: 0 0 auto;">
+                    <p>没有找到匹配的字符</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 名词Tab内容 -->
+        <div id="multiTab" class="tab-content">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" id="multiSearchInput" class="search-input" placeholder="输入名词进行搜索，如：人名、地名、黄牛..." />
+                    <button onclick="searchMultiWords()" class="search-btn">搜索</button>
+                </div>
+                <div class="stats">
+                    <span id="multiTotalCount">总名词数: 0</span>
+                    <span id="multiDisplayCount">显示名词数: 0</span>
+                </div>
+            </div>
+
+            <div class="content">
+                <div id="multiLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>正在加载名词数据...</p>
+                </div>
+                <div id="multiCharacterGrid" class="character-grid" style="display: none; flex: 0 0 auto;"></div>
+                <div id="multiNoResults" class="no-results" style="display: none; flex: 0 0 auto;">
+                    <p>没有找到匹配的名词</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div id="oracleModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="modal-hanzi" id="modalHanzi"></div>
+            <div class="modal-oracle" id="modalOracle"></div>
+            <div class="modal-unicode" id="modalUnicode"></div>
+            <button class="modal-close-btn" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        let singleCharacterData = {};
+        let multiWordData = {};
+        let filteredSingleData = {};
+        let filteredMultiData = {};
+        let currentTab = 'single';
+
+        // Tab切换功能
+        function switchTab(tabName) {
+            // 更新tab按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // 更新tab内容显示
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            currentTab = tabName;
+
+            // 根据当前tab更新搜索框placeholder
+            const singleInput = document.getElementById('singleSearchInput');
+            const multiInput = document.getElementById('multiSearchInput');
+            
+            if (tabName === 'single') {
+                singleInput.placeholder = "输入一个或多个汉字进行搜索，如：明天、你好...";
+                multiInput.placeholder = "输入名词进行搜索，如：人名、地名、黄牛...";
+            } else {
+                singleInput.placeholder = "输入一个或多个汉字进行搜索，如：明天、你好...";
+                multiInput.placeholder = "输入名词进行搜索，如：人名、地名、黄牛...";
+            }
+
+            // 清空搜索框
+            singleInput.value = '';
+            multiInput.value = '';
+
+            // 重新显示当前tab的数据
+            if (tabName === 'single') {
+                filteredSingleData = { ...singleCharacterData };
+                displaySingleCharacters();
+                updateSingleStats();
+            } else {
+                filteredMultiData = { ...multiWordData };
+                displayMultiWords();
+                updateMultiStats();
+            }
+        }
+
+        // 加载单字数据
+        async function loadSingleData() {
+            try {
+                const response = await fetch('./resources/single-word.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                singleCharacterData = await response.json();
+                
+                if (typeof singleCharacterData !== 'object' || singleCharacterData === null) {
+                    throw new Error('单字数据格式错误：不是有效的JSON对象');
+                }
+                
+                console.log(`成功加载单字数据，共 ${Object.keys(singleCharacterData).length} 个字符`);
+                
+                filteredSingleData = { ...singleCharacterData };
+                displaySingleCharacters();
+                updateSingleStats();
+                document.getElementById('singleLoading').style.display = 'none';
+                document.getElementById('singleCharacterGrid').style.display = 'grid';
+                document.getElementById('singleCharacterGrid').style.flex = '1';
+            } catch (error) {
+                console.error('加载单字数据失败:', error);
+                document.getElementById('singleLoading').innerHTML = `
+                    <p>加载单字数据失败</p>
+                    <p style="font-size: 0.9em; color: #666;">错误信息: ${error.message}</p>
+                    <p style="font-size: 0.9em; color: #666;">请确保 one-word.json 文件在同一目录下</p>
+                `;
+            }
+        }
+
+        // 加载名词数据
+        async function loadMultiData() {
+            try {
+                const response = await fetch('./resources/multi-word.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                multiWordData = await response.json();
+                
+                if (typeof multiWordData !== 'object' || multiWordData === null) {
+                    throw new Error('名词数据格式错误：不是有效的JSON对象');
+                }
+                
+                console.log(`成功加载名词数据，共 ${Object.keys(multiWordData).length} 个名词`);
+                
+                filteredMultiData = { ...multiWordData };
+                displayMultiWords();
+                updateMultiStats();
+                document.getElementById('multiLoading').style.display = 'none';
+                document.getElementById('multiCharacterGrid').style.display = 'grid';
+                document.getElementById('multiCharacterGrid').style.flex = '1';
+            } catch (error) {
+                console.error('加载名词数据失败:', error);
+                document.getElementById('multiLoading').innerHTML = `
+                    <p>加载名词数据失败</p>
+                    <p style="font-size: 0.9em; color: #666;">错误信息: ${error.message}</p>
+                    <p style="font-size: 0.9em; color: #666;">请确保 multi-word.json 文件在同一目录下</p>
+                `;
+            }
+        }
+
+        // 显示单字字符
+        function displaySingleCharacters() {
+            const grid = document.getElementById('singleCharacterGrid');
+            grid.innerHTML = '';
+
+            Object.entries(filteredSingleData).forEach(([hanzi, unicodeList]) => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+
+                const hanziElement = document.createElement('div');
+                hanziElement.className = 'character-hanzi';
+                
+                const hanziLink = document.createElement('a');
+                hanziLink.href = `https://www.zdic.net/hans/${encodeURIComponent(hanzi)}`;
+                hanziLink.target = '_blank';
+                hanziLink.textContent = hanzi;
+                hanziLink.style.textDecoration = 'none';
+                
+                hanziElement.appendChild(hanziLink);
+
+                const oracleList = document.createElement('div');
+                oracleList.className = 'oracle-list';
+
+                unicodeList.forEach(unicode => {
+                    const oracleItem = document.createElement('div');
+                    oracleItem.className = 'oracle-item';
+                    
+                    try {
+                        const codePoint = parseInt(unicode.substring(1), 16);
+                        if (isNaN(codePoint)) {
+                            console.warn(`${hanzi} 对应无效的Unicode码点: ${unicode}`);
+                            oracleItem.textContent = '?';
+                        } else {
+                            oracleItem.textContent = String.fromCodePoint(codePoint);
+                        }
+                    } catch (error) {
+                        console.error(`解析Unicode失败: ${unicode}`, error);
+                        oracleItem.textContent = '?';
+                    }
+                    
+                    const unicodeCode = document.createElement('div');
+                    unicodeCode.className = 'unicode-code';
+                    unicodeCode.textContent = unicode;
+                    
+                    oracleItem.appendChild(unicodeCode);
+                    
+                    oracleItem.addEventListener('click', () => {
+                        const oracleChar = oracleItem.textContent.replace(unicode, '').trim();
+                        showOracleModal(hanzi, oracleChar, unicode);
+                    });
+                    
+                    oracleList.appendChild(oracleItem);
+                });
+
+                card.appendChild(hanziElement);
+                card.appendChild(oracleList);
+                grid.appendChild(card);
+            });
+        }
+
+        // 显示名词
+        function displayMultiWords() {
+            const grid = document.getElementById('multiCharacterGrid');
+            grid.innerHTML = '';
+
+            Object.entries(filteredMultiData).forEach(([word, unicodeList]) => {
+                const card = document.createElement('div');
+                card.className = 'character-card';
+
+                const wordElement = document.createElement('div');
+                wordElement.className = 'character-hanzi';
+                wordElement.textContent = word;
+
+                const oracleList = document.createElement('div');
+                oracleList.className = 'oracle-list';
+
+                unicodeList.forEach(unicode => {
+                    const oracleItem = document.createElement('div');
+                    oracleItem.className = 'oracle-item';
+                    
+                    try {
+                        const codePoint = parseInt(unicode.substring(1), 16);
+                        if (isNaN(codePoint)) {
+                            console.warn(`${word} 对应无效的Unicode码点: ${unicode}`);
+                            oracleItem.textContent = '?';
+                        } else {
+                            oracleItem.textContent = String.fromCodePoint(codePoint);
+                        }
+                    } catch (error) {
+                        console.error(`解析Unicode失败: ${unicode}`, error);
+                        oracleItem.textContent = '?';
+                    }
+                    
+                    const unicodeCode = document.createElement('div');
+                    unicodeCode.className = 'unicode-code';
+                    unicodeCode.textContent = unicode;
+                    
+                    oracleItem.appendChild(unicodeCode);
+                    
+                    oracleItem.addEventListener('click', () => {
+                        const oracleChar = oracleItem.textContent.replace(unicode, '').trim();
+                        showOracleModal(word, oracleChar, unicode);
+                    });
+                    
+                    oracleList.appendChild(oracleItem);
+                });
+
+                card.appendChild(wordElement);
+                card.appendChild(oracleList);
+                grid.appendChild(card);
+            });
+        }
+
+        // 搜索单字功能
+        function searchSingleCharacters() {
+            const searchTerm = document.getElementById('singleSearchInput').value.trim();
+            
+            if (!searchTerm) {
+                filteredSingleData = { ...singleCharacterData };
+            } else {
+                filteredSingleData = {};
+                const searchChars = Array.from(searchTerm).filter(char => char.trim() !== '');
+                
+                searchChars.forEach(hanzi => {
+                    if (singleCharacterData[hanzi]) {
+                        filteredSingleData[hanzi] = singleCharacterData[hanzi];
+                    }
+                });
+            }
+
+            displaySingleCharacters();
+            updateSingleStats();
+            
+            const noResults = document.getElementById('singleNoResults');
+            const grid = document.getElementById('singleCharacterGrid');
+            
+            if (Object.keys(filteredSingleData).length === 0) {
+                noResults.style.display = 'block';
+                grid.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                grid.style.display = 'grid';
+                grid.style.flex = '1';
+            }
+        }
+
+        // 搜索名词功能
+        function searchMultiWords() {
+            const searchTerm = document.getElementById('multiSearchInput').value.trim();
+            
+            if (!searchTerm) {
+                filteredMultiData = { ...multiWordData };
+            } else {
+                filteredMultiData = {};
+                
+                Object.keys(multiWordData).forEach(word => {
+                    if (word.includes(searchTerm)) {
+                        filteredMultiData[word] = multiWordData[word];
+                    }
+                });
+            }
+
+            displayMultiWords();
+            updateMultiStats();
+            
+            const noResults = document.getElementById('multiNoResults');
+            const grid = document.getElementById('multiCharacterGrid');
+            
+            if (Object.keys(filteredMultiData).length === 0) {
+                noResults.style.display = 'block';
+                grid.style.display = 'none';
+            } else {
+                noResults.style.display = 'none';
+                grid.style.display = 'grid';
+                grid.style.flex = '1';
+            }
+        }
+
+        // 更新单字统计信息
+        function updateSingleStats() {
+            const totalCount = Object.keys(singleCharacterData).length;
+            const displayCount = Object.keys(filteredSingleData).length;
+            const searchTerm = document.getElementById('singleSearchInput').value.trim();
+            
+            document.getElementById('singleTotalCount').textContent = `总字符数: ${totalCount}`;
+            
+            if (searchTerm && displayCount > 0) {
+                const searchChars = Array.from(searchTerm).filter(char => char.trim() !== '');
+                const foundChars = searchChars.filter(char => singleCharacterData[char]);
+                document.getElementById('singleDisplayCount').textContent = 
+                    `找到字符: ${foundChars.join('、')} (共${displayCount}个)`;
+            } else if (searchTerm && displayCount === 0) {
+                document.getElementById('singleDisplayCount').textContent = `未找到匹配字符`;
+            } else {
+                document.getElementById('singleDisplayCount').textContent = `显示字符数: ${displayCount}`;
+            }
+        }
+
+        // 更新名词统计信息
+        function updateMultiStats() {
+            const totalCount = Object.keys(multiWordData).length;
+            const displayCount = Object.keys(filteredMultiData).length;
+            const searchTerm = document.getElementById('multiSearchInput').value.trim();
+            
+            document.getElementById('multiTotalCount').textContent = `总名词数: ${totalCount}`;
+            
+            if (searchTerm && displayCount > 0) {
+                document.getElementById('multiDisplayCount').textContent = 
+                    `找到名词: ${displayCount}个`;
+            } else if (searchTerm && displayCount === 0) {
+                document.getElementById('multiDisplayCount').textContent = `未找到匹配名词`;
+            } else {
+                document.getElementById('multiDisplayCount').textContent = `显示名词数: ${displayCount}`;
+            }
+        }
+
+        // 回车键搜索
+        document.getElementById('singleSearchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchSingleCharacters();
+            }
+        });
+
+        document.getElementById('multiSearchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchMultiWords();
+            }
+        });
+
+        // 显示甲骨文模态框
+        function showOracleModal(text, oracleChar, unicode) {
+            const modal = document.getElementById('oracleModal');
+            const modalContent = modal.querySelector('.modal-content');
+            
+            document.getElementById('modalHanzi').textContent = text;
+            document.getElementById('modalOracle').textContent = oracleChar;
+            document.getElementById('modalUnicode').textContent = unicode;
+            
+            modal.style.display = 'block';
+            modalContent.offsetHeight;
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('oracleModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击模态框背景关闭
+        document.getElementById('oracleModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // ESC键关闭模态框
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('oracleModal').style.display === 'block') {
+                closeModal();
+            }
+        });
+
+        // 页面加载完成后加载数据
+        window.addEventListener('load', function() {
+            loadSingleData();
+            loadMultiData();
+        });
+    </script>
+</body>
+</html> 
