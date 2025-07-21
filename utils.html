@@ -309,6 +309,8 @@
                     <option value="all">全部汉字</option>
                     <option value="single">单个Unicode</option>
                     <option value="multiple">多个Unicode</option>
+                    <option value="matched">已匹配</option>
+                    <option value="unmatched">未匹配</option>
                 </select>
             </div>
             <div class="filter-group">
@@ -555,6 +557,10 @@
                 if (filterType === 'single' && unicodeList.length > 1) {
                     shouldInclude = false;
                 } else if (filterType === 'multiple' && unicodeList.length === 1) {
+                    shouldInclude = false;
+                } else if (filterType === 'matched' && selectedData[hanzi] === null) {
+                    shouldInclude = false;
+                } else if (filterType === 'unmatched' && selectedData[hanzi] !== null) {
                     shouldInclude = false;
                 }
                 

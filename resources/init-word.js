@@ -5,7 +5,7 @@ const map = {};
 
 const parseWordS = (word) => {
     word = word || '';
-    word = word.trim().replace(/(\?|？)$/, '').replace(/\（\）$/g, '').replace(/\（\）/g, '');
+    word = word.trim().replace(/(\?|？)$/, '').replace(/\（\）$/g, '').replace(/\（\）/g, '').replace(/\d+$/g, '');
     word = word.replace(/(（|\()/, '/').replace(/(\)|）)$/, '').replace(/^\//, '')
     if (!word || ['残疑字', '（）', '()'].includes(word)) {
         return [];
