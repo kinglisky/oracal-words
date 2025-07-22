@@ -38,14 +38,16 @@ const parseWordS = (word) => {
 
 data.forEach(item => {
     item.JGWZX.forEach(item => {
-        const words = parseWordS(item.JTZ || item.FTZ);
+        let words = new Set([
+            ...parseWordS(item.JTZ),
+            ...parseWordS(item.FTZ),
+        ]);
+
+        words = Array.from(words).filter(word => word);
         if (!words.length) {
             return;
         }
         words.forEach(word => {
-            if (!word) {
-                return;
-            }
             
             if (!map[word]) {
                 map[word] = new Set();
